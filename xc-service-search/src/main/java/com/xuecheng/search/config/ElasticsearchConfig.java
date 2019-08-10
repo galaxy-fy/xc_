@@ -17,6 +17,10 @@ public class ElasticsearchConfig {
     @Value("${xuecheng.elasticsearch.hostlist}")
     private String hostlist;
 
+    /**
+     * 高版本
+     * @return
+     */
     @Bean
     public RestHighLevelClient restHighLevelClient(){
         //解析hostlist配置信息
@@ -31,6 +35,10 @@ public class ElasticsearchConfig {
         return new RestHighLevelClient(RestClient.builder(httpHostArray));
     }
 
+    /**
+     * 低版本
+     * @return
+     */
     //项目主要使用RestHighLevelClient，对于低级的客户端暂时不用
     @Bean
     public RestClient restClient(){

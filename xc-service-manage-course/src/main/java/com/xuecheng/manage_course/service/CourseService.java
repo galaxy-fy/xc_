@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@SuppressWarnings("all")//压制警告
 public class CourseService {
     @Autowired
     CourseMapper courseMapper;

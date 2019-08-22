@@ -13,6 +13,7 @@ import java.io.IOException;
 
 //因为不需要向页面返回json数据,所以这里使用Controller注解即可
 @Controller
+@RequestMapping("/cms")
 public class CmsPagePreviewController extends BaseController{
 
     //注入service,直接调用service的方法即可
@@ -20,7 +21,7 @@ public class CmsPagePreviewController extends BaseController{
     PageService pageService;
 
     //使用BaseController的response来对结果进行返回,所以这里方法不需要返回值
-    @RequestMapping(value = "/cms/preview/{pageId}",method= RequestMethod.GET)
+    @RequestMapping(value = "/preview/{pageId}",method= RequestMethod.GET)
     //接收到页面id
     public void preview(@PathVariable("pageId") String pageId) throws IOException {
         String pageHtml = pageService.getPageHtml(pageId);

@@ -9,10 +9,11 @@
         parameterType="com.xuecheng.framework.domain.course.request.CourseListRequest">
          /**select * from course_base
           */
-        SELECT
+         SELECT
          course_base.*,course_pic.pic
          FROM course_base
          LEFT JOIN course_pic
          ON course_base.id= course_pic.courseid
+         WHERE company_id = #{companyId}
     </select>
 </mapper>

@@ -1,11 +1,9 @@
 package com.xuecheng.api.course;
 
-import com.xuecheng.framework.domain.course.CourseBase;
-import com.xuecheng.framework.domain.course.CourseMarket;
-import com.xuecheng.framework.domain.course.CoursePic;
-import com.xuecheng.framework.domain.course.Teachplan;
+import com.xuecheng.framework.domain.course.*;
 import com.xuecheng.framework.domain.course.ext.CourseView;
 import com.xuecheng.framework.domain.course.ext.TeachplanNode;
+import com.xuecheng.framework.domain.course.request.CourseListRequest;
 import com.xuecheng.framework.domain.course.response.AddCourseResult;
 import com.xuecheng.framework.domain.course.response.CoursePublishResult;
 import com.xuecheng.framework.model.response.ResponseResult;
@@ -22,6 +20,9 @@ public interface CourseControllerApi {
 
     @ApiOperation("添加课程计划")
     public ResponseResult addTeachplan(Teachplan teachplan);
+
+    @ApiOperation("主页显示的课程信息")
+    ResponseResult findCourseList(Integer size,Integer page, CourseListRequest courseListRequest);
 
     @ApiOperation("添加课基础信息")
     public AddCourseResult addCourse(CourseBase courseBase);
@@ -55,4 +56,7 @@ public interface CourseControllerApi {
 
     @ApiOperation("发布课程")
     public CoursePublishResult publish(String id);
+
+    @ApiOperation("保存媒资信息")
+    public ResponseResult savemedia(TeachplanMedia teachplanMedia);
 }

@@ -428,7 +428,7 @@ public class PageService {
         CmsPage cmspage1 = cmsPageRepository.findByPageNameAndSiteIdAndPageWebPath(cmsPage.getPageName(), cmsPage.getSiteId(), cmsPage.getPageWebPath());
         if (cmspage1 == null) {
             //如果没有值就调用新增方法
-            return this.add(cmspage1);
+            return this.add(cmsPage);
 
         }
         //有就更新

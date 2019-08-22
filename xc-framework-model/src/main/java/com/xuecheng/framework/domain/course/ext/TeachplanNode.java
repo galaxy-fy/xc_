@@ -14,5 +14,10 @@ import java.util.List;
 public class TeachplanNode extends Teachplan {
 
     List<TeachplanNode> children;
+    //课程所属媒资的id
+
+    //课程所属视频的原名称
+    String mediaId;
+    String mediaFileoriginalname;
 
 }

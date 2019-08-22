@@ -4,6 +4,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -11,6 +12,10 @@ import org.elasticsearch.index.query.TermQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -425,6 +430,254 @@ public class TestSearch {
             String name = (String) sourceAsMap.get("name");
             //前边之前没有设置查询这个字段,所以查询出来的结果不包含这个字段(后已补上)
             String description = (String)sourceAsMap.get("description");
+            //学习模板
+            String studymodel = (String)sourceAsMap.get("studymodel");
+            //价格
+            Double price = (Double) sourceAsMap.get("price");
+            //日期
+            Date timestamp = simpleDateFormat.parse((String) sourceAsMap.get("timestamp"));
+            System.out.println(name);
+            System.out.println(studymodel);
+            System.out.println(description);
+            System.out.println(price);
+            System.out.println(timestamp);
+        }
+    }
+
+
+    /**
+     * 过滤器查询(基于Bool查询)
+     * @throws Exception
+     */
+    @Test
+    public void testFilter() throws Exception{
+        //请求搜索对象
+        SearchRequest searchRequest = new SearchRequest("xc_course");
+        //指定类型
+        searchRequest.types("doc");
+        //搜索源构建对象
+        SearchSourceBuilder searchRequestBuilder = new SearchSourceBuilder();
+        //BoolQuery查询
+
+
+
+        //先定义一个multiMatchQuery查询对象
+        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery("spring css", "name", "description")
+                .minimumShouldMatch("50%")
+                .field("name", 10);
+
+
+        //定义一个BoolQuery查询对象
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //把查询条件装进去
+        boolQueryBuilder.must(multiMatchQueryBuilder);
+        boolQueryBuilder.filter(QueryBuilders.termQuery("studymodel","201001"));
+        boolQueryBuilder.filter(QueryBuilders.rangeQuery("price").gte(60).lte(100));
+        //最后搜索的时候把boolQuery查询对象塞进去
+        searchRequestBuilder.query(boolQueryBuilder);
+
+
+
+        //source源字段过滤,第一个参数结果包括哪些字段,第二个参数表示结果集不包括哪些字段
+        searchRequestBuilder.fetchSource(new String[]{"name","studymodel","price","timestamp","description"},new String[]{} );
+        //向搜索请求中设置搜索源
+        searchRequest.source(searchRequestBuilder);
+        //执行搜索,向ES发送http请求
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest);
+        //搜索的结果
+        SearchHits hits = searchResponse.getHits();
+        //搜索到的总记录数
+        long totalHits = hits.getTotalHits();
+        System.out.println(totalHits);
+
+        //日期格式化对象
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //得到匹配度高的文档
+        SearchHit[] searchHits = hits.getHits();
+        for (SearchHit searchHit : searchHits) {
+            //源文档的内容
+            Map<String, Object> sourceAsMap = searchHit.getSourceAsMap();
+            //name字段的内容
+            String name = (String) sourceAsMap.get("name");
+            //前边之前没有设置查询这个字段,所以查询出来的结果不包含这个字段(后已补上)
+            String description = (String)sourceAsMap.get("description");
+            //学习模板
+            String studymodel = (String)sourceAsMap.get("studymodel");
+            //价格
+            Double price = (Double) sourceAsMap.get("price");
+            //日期
+            Date timestamp = simpleDateFormat.parse((String) sourceAsMap.get("timestamp"));
+            System.out.println(name);
+            System.out.println(studymodel);
+            System.out.println(description);
+            System.out.println(price);
+            System.out.println(timestamp);
+        }
+    }
+
+    /**
+     * 排序(sort)
+     * @throws Exception
+     */
+    @Test
+    public void testSort() throws Exception{
+        //请求搜索对象
+        SearchRequest searchRequest = new SearchRequest("xc_course");
+        //指定类型
+        searchRequest.types("doc");
+
+
+        //搜索源构建对象
+        SearchSourceBuilder searchRequestBuilder = new SearchSourceBuilder();
+        //BoolQuery查询
+
+
+
+        //定义一个BoolQuery查询对象
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //把查询条件装进去
+        boolQueryBuilder.filter(QueryBuilders.rangeQuery("price").gte(0).lte(100));
+        //最后搜索的时候把boolQuery查询对象塞进去
+        searchRequestBuilder.query(boolQueryBuilder);
+        //定义排序
+        searchRequestBuilder.sort(new FieldSortBuilder("studymodel").order(SortOrder.DESC));
+        searchRequestBuilder.sort(new FieldSortBuilder("price").order(SortOrder.ASC));
+
+
+
+        //source源字段过滤,第一个参数结果包括哪些字段,第二个参数表示结果集不包括哪些字段
+        searchRequestBuilder.fetchSource(new String[]{"name","studymodel","price","timestamp","description"},new String[]{} );
+        //向搜索请求中设置搜索源
+        searchRequest.source(searchRequestBuilder);
+        //执行搜索,向ES发送http请求
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest);
+        //搜索的结果
+        SearchHits hits = searchResponse.getHits();
+        //搜索到的总记录数
+        long totalHits = hits.getTotalHits();
+        System.out.println(totalHits);
+
+        //日期格式化对象
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //得到匹配度高的文档
+        SearchHit[] searchHits = hits.getHits();
+        for (SearchHit searchHit : searchHits) {
+            //源文档的内容
+            Map<String, Object> sourceAsMap = searchHit.getSourceAsMap();
+            //name字段的内容
+            String name = (String) sourceAsMap.get("name");
+            //前边之前没有设置查询这个字段,所以查询出来的结果不包含这个字段(后已补上)
+            String description = (String)sourceAsMap.get("description");
+            //学习模板
+            String studymodel = (String)sourceAsMap.get("studymodel");
+            //价格
+            Double price = (Double) sourceAsMap.get("price");
+            //日期
+            Date timestamp = simpleDateFormat.parse((String) sourceAsMap.get("timestamp"));
+            System.out.println(name);
+            System.out.println(studymodel);
+            System.out.println(description);
+            System.out.println(price);
+            System.out.println(timestamp);
+        }
+    }
+
+    /**
+     * 高亮显示
+     * @throws Exception
+     */
+    @Test
+    public void testHighLight() throws Exception{
+        //请求搜索对象
+        SearchRequest searchRequest = new SearchRequest("xc_course");
+        //指定类型
+        searchRequest.types("doc");
+        //搜索源构建对象
+        SearchSourceBuilder searchRequestBuilder = new SearchSourceBuilder();
+        //BoolQuery查询
+
+
+
+        //先定义一个multiMatchQuery查询对象
+        MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery("spring css", "name", "description")
+                .minimumShouldMatch("50%")
+                .field("name", 10);
+
+
+        //定义一个BoolQuery查询对象
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //把查询条件装进去
+        boolQueryBuilder.must(multiMatchQueryBuilder);
+        boolQueryBuilder.filter(QueryBuilders.rangeQuery("price").gte(60).lte(100));
+        //最后搜索的时候把boolQuery查询对象塞进去
+        searchRequestBuilder.query(boolQueryBuilder);
+        searchRequestBuilder.sort(new FieldSortBuilder("studymodel").order(SortOrder.DESC));
+        searchRequestBuilder.sort(new FieldSortBuilder("price").order(SortOrder.ASC));
+        //高亮设置
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        highlightBuilder.preTags("<tag>");//设置前缀
+        highlightBuilder.postTags("</tag>");//设置后缀
+        //设置高亮字段
+        highlightBuilder.fields().add(new HighlightBuilder.Field("name"));
+        highlightBuilder.fields().add(new HighlightBuilder.Field("description"));
+        searchRequestBuilder.highlighter(highlightBuilder);
+
+
+        //source源字段过滤,第一个参数结果包括哪些字段,第二个参数表示结果集不包括哪些字段
+        searchRequestBuilder.fetchSource(new String[]{"name","studymodel","price","timestamp","description"},new String[]{} );
+        //向搜索请求中设置搜索源
+        searchRequest.source(searchRequestBuilder);
+        //执行搜索,向ES发送http请求
+        SearchResponse searchResponse = restHighLevelClient.search(searchRequest);
+        //搜索的结果
+        SearchHits hits = searchResponse.getHits();
+        //搜索到的总记录数
+        long totalHits = hits.getTotalHits();
+        System.out.println(totalHits);
+
+        //日期格式化对象
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //得到匹配度高的文档
+        SearchHit[] searchHits = hits.getHits();
+        for (SearchHit searchHit : searchHits) {
+            //源文档的内容
+            Map<String, Object> sourceAsMap = searchHit.getSourceAsMap();
+
+            //name字段的内容
+            String name = (String) sourceAsMap.get("name");
+            //取出高亮字段
+            Map<String, HighlightField> highlightFields = searchHit.getHighlightFields();
+            if(highlightFields!=null){
+                HighlightField highlightName = highlightFields.get("name");
+                //设置StringBuilder用于拼接
+                StringBuilder stringBuilder = new StringBuilder();
+                if(highlightName!=null){
+                    Text[] fragments = highlightName.getFragments();
+                    for (Text fragment : fragments) {
+                        stringBuilder.append(fragment.toString());
+                    }
+                    name = stringBuilder.toString();
+                }
+            }
+
+            //前边之前没有设置查询这个字段,所以查询出来的结果不包含这个字段(后已补上)
+            String description = (String)sourceAsMap.get("description");
+            //取出高亮
+            //取出高亮字段
+            Map<String, HighlightField> highlightFields1 = searchHit.getHighlightFields();
+            if(highlightFields!=null){
+                HighlightField highlightDescription = highlightFields.get("description");
+                //设置StringBuilder用于拼接
+                StringBuilder stringBuilder = new StringBuilder();
+                if(highlightDescription!=null){
+                    Text[] fragments = highlightDescription.getFragments();
+                    for (Text fragment : fragments) {
+                        stringBuilder.append(fragment.toString());
+                    }
+                    description = stringBuilder.toString();
+                }
+            }
+
             //学习模板
             String studymodel = (String)sourceAsMap.get("studymodel");
             //价格

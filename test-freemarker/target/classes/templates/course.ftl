@@ -190,7 +190,7 @@
                                     <div class="drop-down" style="height: ${firstNode.children?size * 50}px;">
                                         <ul class="list-box">
                                             <#list firstNode.children as secondNode>
-                                                <li>${secondNode.pname}</li>
+                                                <a href="http://ucenter.xuecheng.com/#/learning/${courseBase.id}/${secondNode.id}"  target="_blank" v-if="learnstatus == 1" v-cloak> <li>${secondNode.pname}</li></a>
                                             </#list>
                                         </ul>
                                     </div>
